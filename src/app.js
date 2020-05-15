@@ -12,7 +12,14 @@ app.use(cors());
 const repositories = [
 ];
 
-const likes = 0;
+const likesTotal = [
+
+]
+
+function pluLike (request, response, next) {
+  likes +=1;
+  return next();
+}
 
 app.get("/repositories", (request, response) => {
 
@@ -23,7 +30,7 @@ response.json(repositories);
 app.post("/repositories", (request, response) => {
   const { title, url, techs } = request.body;
 
-  const repositorie = { id: uuid(), title, url, techs, likes };
+  const repositorie = { id: uuid(), title, url, techs, likes: 0 };
 
   repositories.push(repositorie);
 
@@ -41,26 +48,47 @@ app.put("/repositories/:id", (request, response) => {
     return response.status(400).json({ error: "Repositorie not found"});
   }
 
-  const newRepositorie = {
-    id: uuid(),
-    title,
-    url,
-    techs,
-    likes
-  }
+  const repo = repositories[repositorieIndex];
 
-  repositories[repositorieIndex] = newRepositorie;
+  repo.title = title;
+  repo.url = url;
+  repo.techs = techs;
 
-  return response.json(newRepositorie);
+  return response.json(repo);
 
 });
 
 app.delete("/repositories/:id", (request, response) => {
-  // TODO
+  const { id } = request.params;
+
+  const findIndex = repositories.findIndex( repositorie => repositorie.id === id );
+
+  if (findIndex < 0) {
+    return response.status(400).json({ error: "Repositorie not found "});
+  }
+
+  repositories.splice(findIndex, 1)
+
+  return response.status(204).send()
+
 });
 
 app.post("/repositories/:id/like", (request, response) => {
-  // TODO
+  const { id } = request.params;
+
+  const findIndex = repositories.findIndex( repositorie => repositorie.id === id );
+
+  if (findIndex < 0) {
+    return response.status(400).json({ error: "Repositorie not found "});
+  }
+
+  const repo = repositories[findIndex];
+
+  repo.likes ++;
+
+  return response.json(repo);
+
+
 });
 
 module.exports = app;
